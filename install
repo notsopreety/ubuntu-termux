@@ -1,0 +1,26 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -e
+clear
+
+echo "Updating Termux and installing dependencies..."
+pkg update -y && pkg install -y proot-distro > /dev/null 2>&1
+
+echo "Installing Ubuntu..."
+proot-distro install ubuntu > /dev/null 2>&1
+
+echo "Setting up Ubuntu with sudo..."
+proot-distro login ubuntu -- bash << 'EOF'
+apt update -y > /dev/null 2>&1
+apt install -y sudo > /dev/null 2>&1
+echo "127.0.0.1 localhost" > /etc/hosts  # Fix hostname errors
+exit
+EOF
+
+echo "Creating 'ubuntu' command..."
+echo '#!/bin/bash' > ~/.ubuntu.sh
+echo 'proot-distro login ubuntu' >> ~/.ubuntu.sh
+chmod +x ~/.ubuntu.sh
+mv ~/.ubuntu.sh /data/data/com.termux/files/usr/bin/ubuntu
+
+echo "Success! Type 'ubuntu' to launch Ubuntu as root with sudo."
+echo "Test it with 'sudo --version' once inside."
